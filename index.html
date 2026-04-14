@@ -1,0 +1,657 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+    <title>Eternal Vows | Dynamic Marriage Biodata with Auto Age & Experience</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Fonts for elegance -->
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600;700;800&family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --primary: #c44569;
+            --primary-dark: #b13e60;
+            --secondary: #f8a5c2;
+            --gold: #f6b93b;
+            --bg-light: #fff9fb;
+            --shadow: rgba(0, 0, 0, 0.08);
+            --text-dark: #2c3e50;
+            --text-soft: #5d6d7e;
+            --border-rose: #fbc4c4;
+        }
+
+        body {
+            font-family: 'Poppins', sans-serif;
+            background: linear-gradient(145deg, #fef2f5 0%, #ffe9f0 100%);
+            min-height: 100vh;
+            padding: 30px 20px;
+            position: relative;
+            overflow-x: hidden;
+        }
+
+        /* DYNAMIC FLOWER BACKGROUND (Canvas) */
+        #flower-canvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 1;
+            opacity: 0.65;
+        }
+
+        /* Main container */
+        .biodata-card {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: rgba(255, 255, 255, 0.96);
+            border-radius: 48px 32px 48px 32px;
+            box-shadow: 0 30px 50px rgba(0, 0, 0, 0.12), 0 8px 20px rgba(0, 0, 0, 0.05);
+            overflow: hidden;
+            position: relative;
+            z-index: 10;
+            backdrop-filter: blur(0px);
+            transition: all 0.3s ease;
+        }
+
+        .biodata-card::before {
+            content: "";
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            right: 20px;
+            bottom: 20px;
+            border: 2px dashed rgba(196, 69, 105, 0.25);
+            border-radius: 38px 22px 38px 22px;
+            pointer-events: none;
+        }
+
+        /* Header section */
+        .hero-section {
+            background: linear-gradient(135deg, #c44569 0%, #e66767 100%);
+            padding: 40px 30px 50px;
+            text-align: center;
+            position: relative;
+            color: white;
+            clip-path: polygon(0 0, 100% 0, 100% 92%, 0 100%);
+        }
+
+        .hero-section::after {
+            content: "🌸";
+            font-size: 140px;
+            position: absolute;
+            bottom: -30px;
+            right: -20px;
+            opacity: 0.1;
+            pointer-events: none;
+            transform: rotate(-15deg);
+        }
+
+        .profile-frame {
+            width: 170px;
+            height: 170px;
+            margin: 0 auto 20px;
+            background: white;
+            border-radius: 50%;
+            padding: 5px;
+            box-shadow: 0 20px 30px rgba(0, 0, 0, 0.2);
+            transition: transform 0.4s ease;
+        }
+
+        .profile-frame:hover {
+            transform: scale(1.02);
+        }
+
+        .profile-img {
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            object-fit: cover;
+            background: #fdeff2;
+            border: 3px solid #ffddcc;
+        }
+
+        .hero-section h1 {
+            font-family: 'Playfair Display', serif;
+            font-size: 2.9rem;
+            letter-spacing: 2px;
+            font-weight: 700;
+            text-shadow: 2px 2px 6px rgba(0,0,0,0.2);
+            margin-bottom: 8px;
+        }
+
+        .tagline {
+            font-size: 1.2rem;
+            background: rgba(255,255,240,0.25);
+            display: inline-block;
+            padding: 6px 20px;
+            border-radius: 40px;
+            backdrop-filter: blur(2px);
+            font-weight: 500;
+        }
+
+        /* dynamic counters badge */
+        .dynamic-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            background: rgba(255,215,0,0.2);
+            backdrop-filter: blur(4px);
+            padding: 5px 16px;
+            border-radius: 50px;
+            font-size: 0.9rem;
+            margin-top: 12px;
+            font-weight: 500;
+        }
+
+        /* Grid Layout */
+        .info-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 0;
+        }
+
+        @media (max-width: 780px) {
+            .info-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .info-panel {
+            padding: 35px 30px;
+            background: white;
+            transition: background 0.2s;
+        }
+
+        .info-panel:nth-child(even) {
+            background: #fffafc;
+        }
+
+        .section-title {
+            font-family: 'Playfair Display', serif;
+            font-size: 1.8rem;
+            font-weight: 700;
+            color: #c44569;
+            margin-bottom: 25px;
+            border-left: 6px solid #f8a5c2;
+            padding-left: 20px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .section-title i {
+            font-size: 1.6rem;
+            color: #f6b93b;
+        }
+
+        .info-list {
+            display: flex;
+            flex-direction: column;
+            gap: 18px;
+        }
+
+        .info-row {
+            display: flex;
+            align-items: baseline;
+            flex-wrap: wrap;
+            border-bottom: 1px dashed #f0cfcf;
+            padding-bottom: 10px;
+        }
+
+        .info-label {
+            width: 140px;
+            font-weight: 600;
+            color: #7f5b6e;
+            font-size: 0.9rem;
+            letter-spacing: 0.5px;
+        }
+
+        .info-value {
+            flex: 1;
+            font-weight: 500;
+            color: #2c3e50;
+            font-size: 1rem;
+        }
+
+        .badge-icon {
+            background: #ffe3e8;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 6px 12px;
+            border-radius: 50px;
+            font-size: 0.85rem;
+            font-weight: 500;
+            color: #b13e60;
+            margin-left: 8px;
+        }
+
+        /* family cards */
+        .family-container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 18px;
+            margin-top: 10px;
+        }
+
+        .family-card {
+            background: linear-gradient(145deg, #ffffff, #fef6f9);
+            flex: 1 1 160px;
+            padding: 18px 12px;
+            text-align: center;
+            border-radius: 28px;
+            box-shadow: 0 8px 14px rgba(0, 0, 0, 0.02);
+            transition: all 0.25s ease;
+            border: 1px solid #ffe0e7;
+            cursor: pointer;
+        }
+
+        .family-card:hover {
+            transform: translateY(-8px);
+            border-color: #f8a5c2;
+            box-shadow: 0 18px 25px -12px rgba(196, 69, 105, 0.25);
+        }
+
+        .family-card i {
+            font-size: 2.5rem;
+            color: #c44569;
+            margin-bottom: 12px;
+        }
+
+        .family-card .relation {
+            font-weight: 700;
+            color: #b3476b;
+            font-size: 1rem;
+        }
+
+        .expectation-box {
+            background: linear-gradient(120deg, #fff0f5, #fff6f0);
+            border-radius: 38px;
+            padding: 28px;
+            margin: 20px 0;
+            border-right: 5px solid #f6b93b;
+            box-shadow: 0 8px 18px rgba(0,0,0,0.03);
+        }
+
+        .glow-btn {
+            background: linear-gradient(90deg, #c44569, #e66767);
+            border: none;
+            color: white;
+            font-size: 1.2rem;
+            font-weight: 600;
+            padding: 14px 38px;
+            border-radius: 50px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 12px 18px -8px rgba(196, 69, 105, 0.4);
+            display: inline-flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .glow-btn:hover {
+            transform: scale(1.02);
+            background: linear-gradient(90deg, #b13e60, #d45a5a);
+        }
+
+        .footer {
+            background: #2d1e2a;
+            color: #fbc4c4;
+            text-align: center;
+            padding: 18px;
+            font-size: 0.8rem;
+        }
+
+        .floating-petal {
+            position: fixed;
+            pointer-events: none;
+            z-index: 9999;
+            font-size: 1.8rem;
+            animation: fadeOutUp 1s ease-out forwards;
+        }
+
+        @keyframes fadeOutUp {
+            0% { opacity: 0.9; transform: translateY(0) rotate(0deg); }
+            100% { opacity: 0; transform: translateY(-100px) rotate(25deg); }
+        }
+
+        @media (max-width: 600px) {
+            .hero-section h1 { font-size: 2rem; }
+            .info-label { width: 120px; }
+            .section-title { font-size: 1.4rem; }
+        }
+    </style>
+</head>
+<body>
+
+    <canvas id="flower-canvas"></canvas>
+
+    <div class="biodata-card">
+        <div class="hero-section">
+            <div class="profile-frame">
+                <img src="images/nitin.jpeg" alt="Nitin Pandey" class="profile-img">
+            </div>
+            <h1>Nitin Pandey</h1>
+            <div class="tagline">
+                <i class="fas fa-code"></i> Software Engineer | <i class="fas fa-heart"></i> Eternal Values
+            </div>
+            <div class="dynamic-badge" id="liveAgeBadge">
+                <i class="fas fa-birthday-cake"></i> <span id="ageValue">--</span> years young
+            </div>
+        </div>
+
+        <div class="info-grid">
+            <!-- Personal Details Column -->
+            <div class="info-panel">
+                <div class="section-title">
+                    <i class="fas fa-user-astronaut"></i> Personal
+                </div>
+                <div class="info-list">
+                    <div class="info-row"><span class="info-label"><i class="fas fa-phone-alt"></i> Phone</span><span class="info-value">+91 8707510437</span></div>
+                    <div class="info-row"><span class="info-label"><i class="fab fa-linkedin"></i> LinkedIn</span><span class="info-value"><a href="#" style="color:#c44569;">linkedin.com/in/selfnitinpandey</a></span></div>
+                    <div class="info-row"><span class="info-label"><i class="fas fa-envelope"></i> Email</span><span class="info-value">selfnitinpandey@gmail.com</span></div>
+                    <div class="info-row">
+                        <span class="info-label"><i class="fas fa-calendar-alt"></i> Date of Birth</span>
+                        <span class="info-value">19th October, 1998 <span class="badge-icon" id="dobExact"><i class="fas fa-hourglass-half"></i> <span id="exactAge">--</span></span></span>
+                    </div>
+                    <div class="info-row"><span class="info-label"><i class="fas fa-dharmachakra"></i> Gotra</span><span class="info-value">Sabaran</span></div>
+                    <div class="info-row"><span class="info-label"><i class="fas fa-globe-asia"></i> Dharma</span><span class="info-value">Hindu</span></div>
+                    <div class="info-row"><span class="info-label"><i class="fas fa-flag"></i> Nationality</span><span class="info-value">Indian</span></div>
+                    <div class="info-row"><span class="info-label"><i class="fas fa-users"></i> Pandey Clan</span><span class="info-value">Itar</span></div>
+                    <div class="info-row"><span class="info-label"><i class="fas fa-ruler-vertical"></i> Height</span><span class="info-value">5 feet 9 inches</span></div>
+                </div>
+
+                <div class="section-title" style="margin-top: 35px;">
+                    <i class="fas fa-map-marker-alt"></i> Native Address
+                </div>
+                <div class="info-list">
+                    <div class="info-row"><span class="info-label">Village</span><span class="info-value">Basarahi</span></div>
+                    <div class="info-row"><span class="info-label">Post/Thana</span><span class="info-value">Balwarganj, Sujanganj</span></div>
+                    <div class="info-row"><span class="info-label">Tahsil</span><span class="info-value">Machhalishahar</span></div>
+                    <div class="info-row"><span class="info-label">District</span><span class="info-value">Jaunpur (UP)</span></div>
+                    <div class="info-row"><span class="info-label">Pincode</span><span class="info-value">222201</span></div>
+                </div>
+            </div>
+
+            <!-- Professional & Education Column with dynamic experience -->
+            <div class="info-panel">
+                <div class="section-title">
+                    <i class="fas fa-briefcase"></i> Professional
+                </div>
+                <div class="info-list">
+                    <div class="info-row"><span class="info-label">Occupation</span><span class="info-value">Software Engineer</span></div>
+                    <div class="info-row"><span class="info-label">Company</span><span class="info-value">Softcell Technology Global Pvt Ltd</span></div>
+                    <div class="info-row"><span class="info-label">Industry</span><span class="info-value">IT & Services</span></div>
+                    <div class="info-row"><span class="info-label">Location</span><span class="info-value">Mumbai, Maharashtra</span></div>
+                    <div class="info-row">
+                        <span class="info-label"><i class="fas fa-calendar-check"></i> Joining Date</span>
+                        <span class="info-value">1st February, 2023 <span class="badge-icon" id="expBadge"><i class="fas fa-chart-line"></i> <span id="experienceDisplay">--</span></span></span>
+                    </div>
+                    <div class="info-row"><span class="info-label">Total Experience</span><span class="info-value" id="detailedExp">-- months</span></div>
+                </div>
+
+                <div class="section-title" style="margin-top: 35px;">
+                    <i class="fas fa-graduation-cap"></i> Education
+                </div>
+                <div class="info-list">
+                    <div class="info-row"><span class="info-label">Degree</span><span class="info-value">Master of Computer Application (MCA)</span></div>
+                    <div class="info-row"><span class="info-label">University</span><span class="info-value">Integral University, Lucknow</span></div>
+                    <div class="info-row"><span class="info-label">Passing Year</span><span class="info-value">2023</span></div>
+                    <div class="info-row"><span class="info-label">Specialization</span><span class="info-value">Golang / Python / Cloud</span></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Family Details -->
+        <div class="info-panel" style="background: #fff6f9; border-top: 2px solid #ffe0e7;">
+            <div class="section-title">
+                <i class="fas fa-heartbeat"></i> Family & Roots
+            </div>
+            <div class="family-container">
+                <div class="family-card"><i class="fas fa-user-tie"></i><div class="relation">Grandfather</div><div class="name">Ram Ajor Pandey</div><div class="contact-small"> 7860474847</div></div>
+                <div class="family-card"><i class="fas fa-user-tie"></i><div class="relation">Father</div><div class="name">Raj Kumar Pandey</div><div class="contact-small"> 8928395872</div></div>
+                <div class="family-card"><i class="fas fa-female"></i><div class="relation">Mother</div><div class="name">Neelam Pandey</div><div class="contact-small"> Homemaker</div></div>
+                <div class="family-card"><i class="fas fa-female"></i><div class="relation">Sister</div><div class="name">Ritika Pandey</div><div class="contact-small">M.Com</div></div>
+                <div class="family-card"><i class="fas fa-male"></i><div class="relation">Brother</div><div class="name">Nikhil Pandey</div><div class="contact-small"> B.Sc Agriculture</div></div>
+            </div>
+        </div>
+
+        <!-- Expectations -->
+        <div class="info-panel">
+            <div class="section-title"><i class="fas fa-dove"></i> Expectations & Beliefs</div>
+            <div class="expectation-box">
+                <p><i class="fas fa-leaf" style="color:#c44569;"></i> Looking for a caring, ambitious, and family-oriented life partner who respects traditions yet embraces modernity.</p>
+                <p><i class="fas fa-hands-helping"></i> Belief in mutual growth, kindness, and open communication. She should value relationships and share a vision of a joyful, supportive home.</p>
+                <p><i class="fas fa-chalkboard-user"></i> Professionally, she can be from any background — respect for each other's career is paramount.</p>
+                <p><i class="fas fa-smile-beam"></i> A blend of laughter, spirituality, and shared dreams — our journey should be magical.</p>
+            </div>
+        </div>
+
+        
+
+        <div class="footer"><i class="fas fa-feather-alt"></i> "Satyam Shivam Sundaram" — A blessed union awaits 🌸</div>
+    </div>
+
+    <script>
+        (function() {
+            // ========== 1. DYNAMIC AGE CALCULATION (DOB: 19th Oct 1998) ==========
+            const dob = new Date(1998, 9, 19); // month is 0-index (Oct = 9)
+            function calculateAge(birthDate) {
+                const today = new Date();
+                let years = today.getFullYear() - birthDate.getFullYear();
+                let months = today.getMonth() - birthDate.getMonth();
+                let days = today.getDate() - birthDate.getDate();
+                if (days < 0) {
+                    months--;
+                    const lastMonth = new Date(today.getFullYear(), today.getMonth(), 0);
+                    days += lastMonth.getDate();
+                }
+                if (months < 0) {
+                    years--;
+                    months += 12;
+                }
+                return { years, months, days };
+            }
+            
+            function updateAgeDisplay() {
+                const ageObj = calculateAge(dob);
+                const ageYears = ageObj.years;
+                const ageMonths = ageObj.months;
+                const ageDays = ageObj.days;
+                const ageSpan = document.getElementById('ageValue');
+                const exactAgeSpan = document.getElementById('exactAge');
+                if (ageSpan) ageSpan.innerText = ageYears;
+                if (exactAgeSpan) exactAgeSpan.innerText = `${ageYears} yrs ${ageMonths} months ${ageDays} days`;
+                return ageYears;
+            }
+            
+            // ========== 2. COMPANY EXPERIENCE (Joining Date: 01/02/2023) ==========
+            const joiningDate = new Date(2023, 1, 1); // 1st Feb 2023 (month 1 = Feb)
+            
+            function calculateExperience(joinDate) {
+                const today = new Date();
+                let years = today.getFullYear() - joinDate.getFullYear();
+                let months = today.getMonth() - joinDate.getMonth();
+                let days = today.getDate() - joinDate.getDate();
+                
+                if (days < 0) {
+                    months--;
+                    const lastMonth = new Date(today.getFullYear(), today.getMonth(), 0);
+                    days += lastMonth.getDate();
+                }
+                if (months < 0) {
+                    years--;
+                    months += 12;
+                }
+                // total months for extra display
+                const totalMonths = (years * 12) + months;
+                return { years, months, days, totalMonths };
+            }
+            
+            function updateExperienceDisplay() {
+                const exp = calculateExperience(joiningDate);
+                const expSpan = document.getElementById('experienceDisplay');
+                const detailedExpSpan = document.getElementById('detailedExp');
+                if (expSpan) {
+                    if (exp.years > 0) {
+                        expSpan.innerText = `${exp.years} yr${exp.years > 1 ? 's' : ''} ${exp.months} month${exp.months !== 1 ? 's' : ''}`;
+                    } else {
+                        expSpan.innerText = `${exp.months} month${exp.months !== 1 ? 's' : ''}`;
+                    }
+                }
+                if (detailedExpSpan) {
+                    detailedExpSpan.innerText = `${exp.years} years ${exp.months} months (${exp.totalMonths} total months)`;
+                }
+                return exp;
+            }
+            
+            // initial updates
+            updateAgeDisplay();
+            updateExperienceDisplay();
+            
+            // optional live update every day (refresh counts if page stays open long)
+            setInterval(() => {
+                updateAgeDisplay();
+                updateExperienceDisplay();
+            }, 86400000); // once per day
+            
+            // ========== 3. DYNAMIC FLOWER BACKGROUND CANVAS ==========
+            const canvas = document.getElementById('flower-canvas');
+            const ctx = canvas.getContext('2d');
+            let width = window.innerWidth;
+            let height = window.innerHeight;
+            let flowers = [];
+            const FLOWER_TYPES = ['🌸', '🌼', '🌺', '🌷', '🌸', '💮', '🌻', '🌸'];
+            
+            class FlowerPetal {
+                constructor() {
+                    this.x = Math.random() * width;
+                    this.y = Math.random() * height - height * 0.2;
+                    this.size = 12 + Math.random() * 24;
+                    this.speedY = 0.5 + Math.random() * 1.3;
+                    this.speedX = (Math.random() - 0.5) * 0.4;
+                    this.rotation = Math.random() * Math.PI * 2;
+                    this.rotSpeed = (Math.random() - 0.5) * 0.02;
+                    this.opacity = 0.4 + Math.random() * 0.5;
+                    this.flowerChar = FLOWER_TYPES[Math.floor(Math.random() * FLOWER_TYPES.length)];
+                }
+                update() {
+                    this.y += this.speedY;
+                    this.x += this.speedX;
+                    this.rotation += this.rotSpeed;
+                    if (this.y > height + 50) { this.y = -50; this.x = Math.random() * width; }
+                    if (this.x > width + 50) this.x = -50;
+                    if (this.x < -50) this.x = width + 50;
+                }
+                draw() {
+                    if (!ctx) return;
+                    ctx.save();
+                    ctx.translate(this.x, this.y);
+                    ctx.rotate(this.rotation);
+                    ctx.font = `${this.size}px "Segoe UI Emoji", "Apple Color Emoji", sans-serif`;
+                    ctx.globalAlpha = this.opacity;
+                    ctx.fillStyle = `rgba(210, 90, 120, ${this.opacity * 0.7})`;
+                    ctx.fillText(this.flowerChar, 0, 0);
+                    ctx.restore();
+                }
+            }
+            
+            function initFlowers(count = 55) {
+                flowers = [];
+                for (let i = 0; i < count; i++) flowers.push(new FlowerPetal());
+            }
+            
+            function animateBackground() {
+                if (!ctx) return;
+                ctx.clearRect(0, 0, width, height);
+                for (let f of flowers) { f.update(); f.draw(); }
+                requestAnimationFrame(animateBackground);
+            }
+            
+            function resizeCanvas() {
+                width = window.innerWidth;
+                height = window.innerHeight;
+                canvas.width = width;
+                canvas.height = height;
+                initFlowers(55);
+            }
+            window.addEventListener('resize', resizeCanvas);
+            resizeCanvas();
+            animateBackground();
+            
+            // ========== 4. INTERACTIVE FLOWER BURST & BUTTON ==========
+            function createFloatingFlower(x, y, emoji = '🌸') {
+                const div = document.createElement('div');
+                div.className = 'floating-petal';
+                div.innerHTML = emoji;
+                div.style.left = x + 'px';
+                div.style.top = y + 'px';
+                div.style.position = 'fixed';
+                div.style.fontSize = (20 + Math.random() * 28) + 'px';
+                div.style.pointerEvents = 'none';
+                div.style.zIndex = '9999';
+                document.body.appendChild(div);
+                setTimeout(() => div.remove(), 1000);
+            }
+            
+            const contactBtn = document.getElementById('dynamicContactBtn');
+            if (contactBtn) {
+                contactBtn.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    alert("🌸 Thank you for your interest! 🌸\nYou can call Grand father +91 7860474847 and  Father +91 8928395872 . Family blessings!");
+                    const rect = contactBtn.getBoundingClientRect();
+                    const centerX = rect.left + rect.width / 2;
+                    const centerY = rect.top + rect.height / 2;
+                    for (let i=0; i<22; i++) {
+                        setTimeout(() => {
+                            const offsetX = (Math.random() - 0.5) * 130;
+                            const offsetY = (Math.random() - 0.5) * 90;
+                            createFloatingFlower(centerX + offsetX, centerY + offsetY, ['🌸','🌼','🌺','💮','🌷'][Math.floor(Math.random()*5)]);
+                        }, i * 25);
+                    }
+                });
+            }
+            
+            // family card click flower effect
+            document.querySelectorAll('.family-card').forEach(card => {
+                card.addEventListener('click', (e) => {
+                    const rect = card.getBoundingClientRect();
+                    const x = rect.left + rect.width / 2;
+                    const y = rect.top + rect.height / 2;
+                    for (let i=0; i<12; i++) {
+                        setTimeout(() => createFloatingFlower(x + (Math.random()-0.5)*70, y + (Math.random()-0.5)*50, '🌼'), i*20);
+                    }
+                });
+            });
+            
+            // subtle mouse move petals
+            let lastTime = 0;
+            window.addEventListener('mousemove', (e) => {
+                const now = Date.now();
+                if (now - lastTime > 280 && Math.random() > 0.7) {
+                    lastTime = now;
+                    createFloatingFlower(e.clientX, e.clientY, ['🌸','🌼','🌺'][Math.floor(Math.random()*3)]);
+                }
+            });
+            
+            // initial greeting petals on load
+            window.addEventListener('load', () => {
+                for (let i=0; i<20; i++) {
+                    setTimeout(() => createFloatingFlower(Math.random() * window.innerWidth, window.innerHeight - 50, '🌺'), i*80);
+                }
+                // also update any extra age/experience display
+                updateAgeDisplay();
+                updateExperienceDisplay();
+            });
+        })();
+    </script>
+</body>
+</html>
