@@ -1,0 +1,776 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=ce-width, initial-scale=1.0, user-scalable=yes">
+    <title>Nitin Pandey</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;14..32,400;14..32,500;14..32,600;14..32,700&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --primary: #b8860b;
+            --primary-dark: #8b6508;
+            --line-color: #c9b896;
+            --late-bg: #f0ebe0;
+            --alive-bg: #fffaf0;
+            --male-color: #2c7da0;
+            --female-color: #c44569;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: linear-gradient(145deg, #fef8e8 0%, #fef0dc 100%);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .header {
+            text-align: center;
+            padding: 20px 20px 15px;
+            background: linear-gradient(145deg, #fef8e8 0%, #fef0dc 100%);
+            position: sticky;
+            top: 0;
+            z-index: 10;
+        }
+
+        .header h1 {
+            font-family: 'Playfair Display', serif;
+            font-size: 1.8rem;
+            color: var(--primary);
+            margin-bottom: 6px;
+        }
+
+        .header p {
+            color: #7a6b53;
+            font-size: 0.8rem;
+        }
+
+        .back-btn {
+            display: inline-block;
+            margin-top: 10px;
+            background: var(--primary);
+            color: white;
+            padding: 6px 20px;
+            border-radius: 40px;
+            text-decoration: none;
+            font-size: 0.75rem;
+            font-weight: 500;
+            transition: 0.25s;
+        }
+
+        .back-btn:hover {
+            background: var(--primary-dark);
+        }
+
+        .tree-scroll-container {
+            overflow-x: auto;
+            overflow-y: visible;
+            flex: 1;
+            margin: 10px 0;
+            padding: 10px 20px;
+            -webkit-overflow-scrolling: touch;
+            scrollbar-width: thin;
+        }
+
+        .tree-scroll-container::-webkit-scrollbar {
+            height: 6px;
+        }
+
+        .tree-scroll-container::-webkit-scrollbar-track {
+            background: #f0e0c0;
+            border-radius: 10px;
+        }
+
+        .tree-scroll-container::-webkit-scrollbar-thumb {
+            background: var(--primary);
+            border-radius: 10px;
+        }
+
+        .tree-wrapper {
+            min-width: max-content;
+            padding: 20px 20px;
+            background: white;
+            border-radius: 32px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.06);
+            display: inline-block;
+        }
+
+        .family-summary {
+            position: sticky;
+            bottom: 0;
+            background: #fff8e8;
+            padding: 12px 16px;
+            text-align: center;
+            border-top: 1px solid #f0e0c0;
+            margin-top: auto;
+            font-size: 0.7rem;
+        }
+
+        /* ========== TREE STYLES ========== */
+        .tree {
+            position: relative;
+            white-space: nowrap;
+        }
+
+        .tree ul {
+            padding-top: 25px;
+            position: relative;
+            display: flex;
+            justify-content: center;
+            white-space: nowrap;
+        }
+
+        .tree li {
+            display: inline-block;
+            text-align: center;
+            list-style-type: none;
+            position: relative;
+            padding: 25px 12px 0 12px;
+            vertical-align: top;
+        }
+
+        /* Horizontal connector lines between siblings */
+        .tree li::before,
+        .tree li::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            right: 50%;
+            border-top: 2px solid var(--line-color);
+            width: 50%;
+            height: 25px;
+        }
+
+        .tree li::after {
+            left: 50%;
+            right: auto;
+            border-left: 2px solid var(--line-color);
+        }
+
+        .tree li:first-child::before,
+        .tree li:last-child::after {
+            border: 0 none;
+        }
+
+        /* Remove lines for single child */
+        .tree li:only-child::after,
+        .tree li:only-child::before {
+            display: none;
+        }
+
+        .tree li:only-child {
+            padding-top: 0;
+        }
+
+        /* Vertical line from parent down to children - ONLY if there are children */
+        .tree ul::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 50%;
+            border-left: 2px solid var(--line-color);
+            width: 0;
+            height: 25px;
+            transform: translateX(-50%);
+        }
+
+        /* Down arrow indicator - show when ul has children or for consistency */
+        .tree ul::after {
+            content: '▼';
+            position: absolute;
+            top: 18px;
+            left: 50%;
+            transform: translateX(-50%);
+            color: var(--primary);
+            font-size: 9px;
+            background: white;
+            padding: 0 4px;
+            z-index: 2;
+        }
+
+        /* Hide arrow for empty ul that we use for spacing */
+        .tree ul:empty::after {
+            display: none;
+        }
+
+        /* Card styles */
+        .person-card {
+            background: var(--alive-bg);
+            border-radius: 14px;
+            padding: 10px 14px;
+            min-width: 140px;
+            text-align: center;
+            border-top: 4px solid var(--primary);
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+            transition: all 0.2s;
+            position: relative;
+            display: inline-block;
+            vertical-align: middle;
+        }
+
+        .person-card.late {
+            background: var(--late-bg);
+            border-top-color: #aaa;
+            opacity: 0.85;
+        }
+
+        .person-card.late::after {
+            content: "🕊️";
+            position: absolute;
+            top: -8px;
+            right: -6px;
+            font-size: 12px;
+            background: white;
+            border-radius: 50%;
+            width: 20px;
+            height: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+
+        .person-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 12px rgba(0,0,0,0.1);
+        }
+
+        .person-name {
+            font-weight: 700;
+            font-size: 0.9rem;
+            color: #2c2418;
+        }
+
+        .gender-text {
+            font-size: 0.65rem;
+            font-weight: 600;
+            margin-left: 5px;
+            display: inline-block;
+        }
+
+        .gender-text.male {
+            color: var(--male-color);
+            background: #e8f0f5;
+            padding: 1px 5px;
+            border-radius: 20px;
+        }
+
+        .gender-text.female {
+            color: var(--female-color);
+            background: #fce8ed;
+            padding: 1px 5px;
+            border-radius: 20px;
+        }
+
+        .person-dob {
+            font-size: 0.6rem;
+            color: #8b7355;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 4px;
+            flex-wrap: wrap;
+            margin-top: 4px;
+        }
+
+        .age-chip {
+            background: var(--primary);
+            color: white;
+            padding: 2px 6px;
+            border-radius: 20px;
+            font-size: 0.55rem;
+            font-weight: 600;
+            display: inline-block;
+        }
+
+        .age-chip.late {
+            background: #9e8b72;
+        }
+
+        .couple-container {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            flex-wrap: nowrap;
+            position: relative;
+        }
+
+        .heart-icon {
+            color: var(--primary);
+            font-size: 0.75rem;
+            margin: 0 2px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .small-card {
+            background: var(--alive-bg);
+            border-radius: 10px;
+            padding: 8px 10px;
+            min-width: 120px;
+            text-align: center;
+            border-top: 3px solid var(--primary);
+            display: inline-block;
+        }
+
+        .small-card.late {
+            background: var(--late-bg);
+            border-top-color: #aaa;
+        }
+
+        .small-name {
+            font-weight: 600;
+            font-size: 0.8rem;
+        }
+
+        /* Message box for unmarried */
+        .message-box {
+            background: #f5f0e6;
+            border-radius: 10px;
+            padding: 8px 12px;
+            min-width: 140px;
+            text-align: center;
+            border-left: 3px solid #c9b896;
+            margin-top: 5px;
+        }
+
+        .message-text {
+            font-size: 0.65rem;
+            color: #7a684c;
+            font-style: italic;
+        }
+
+        @media (max-width: 768px) {
+            .person-card {
+                min-width: 110px;
+                padding: 6px 8px;
+            }
+            .small-card {
+                min-width: 95px;
+                padding: 5px 6px;
+            }
+            .person-name {
+                font-size: 0.75rem;
+            }
+            .small-name {
+                font-size: 0.7rem;
+            }
+            .tree-wrapper {
+                padding: 15px 15px;
+            }
+            .message-box {
+                min-width: 110px;
+                padding: 6px 8px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .person-card {
+                min-width: 95px;
+            }
+            .small-card {
+                min-width: 85px;
+            }
+            .header h1 {
+                font-size: 1.4rem;
+            }
+            .message-box {
+                min-width: 95px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1><i class="fas fa-tree"></i>  Family Tree</h1>
+        <p>Generations of Love & Legacy </p>
+        <a href="#" class="back-btn" onclick="history.back(); return false;"><i class="fas fa-arrow-left"></i> Back to Biodata</a>
+    </div>
+
+    <div class="tree-scroll-container">
+        <div class="tree-wrapper">
+            <div class="tree">
+                <!-- LEVEL 1: Jayraji  & Ram Kripal -->
+                <ul>
+                    <li>
+                        <div class="couple-container">
+                            <div class="person-card late" data-birth="1920-05-15" data-died="2015-08-20">
+                                <div class="person-name">Bansraji  <span class="gender-text female">F</span></div>
+                                <div class="person-dob"><i class="fas fa-calendar-alt"></i> 15 May 1920</div>
+                                <div class="person-dob"><i class="fas fa-skull"></i> 20 Aug 2015</div>
+                                <span class="age-chip late" id="age-jayraji">--</span>
+                            </div>
+                            <span class="heart-icon"><i class="fas fa-heart"></i></span>
+                            <div class="person-card late" data-birth="1915-03-10" data-died="1988-12-05">
+                                <div class="person-name">Ram Kripal  <span class="gender-text male">M</span></div>
+                                <div class="person-dob"><i class="fas fa-calendar-alt"></i> 10 Mar 1915</div>
+                                <div class="person-dob"><i class="fas fa-skull"></i> 5 Dec 1988</div>
+                                <span class="age-chip late" id="age-ramkripal">--</span>
+                            </div>
+                        </div>
+
+                        <!-- LEVEL 2: Two Sons - BOTH have proper ul with content or placeholder -->
+                        <ul>
+                            <!-- Son 1: Ram Ajor  (HAS CHILDREN) -->
+                            <li>
+                                <div class="couple-container">
+                                    <div class="person-card" data-birth="1955-03-10">
+                                        <div class="person-name">Ram Ajor  <span class="gender-text male">M</span></div>
+                                        <div class="person-dob"><i class="fas fa-calendar-alt"></i> 01 Jan 1945</div>
+                                        <span class="age-chip" id="age-ramajor">--</span>
+                                    </div>
+                                    <span class="heart-icon"><i class="fas fa-heart"></i></span>
+                                    <div class="small-card late" data-birth="1958-12-20" data-died="2010-07-15">
+                                        <div class="small-name">Asharfi  <span class="gender-text female">F</span></div>
+                                        <div class="person-dob"><i class="fas fa-calendar-alt"></i> 20 Dec 1958</div>
+                                        <div class="person-dob"><i class="fas fa-skull"></i> 15 Jul 2010</div>
+                                        <span class="age-chip late" id="age-ramkali">--</span>
+                                    </div>
+                                </div>
+
+                                <!-- Ram Ajor's Children - Shusheel & Rajkumar -->
+                                <ul>
+                                    <!-- Shusheel  -->
+                                    <li>
+                                        <div class="couple-container">
+                                            <div class="small-card" data-birth="1978-12-05">
+                                                <div class="small-name">Shusheel  <span class="gender-text male">M</span></div>
+                                                <div class="person-dob"><i class="fas fa-calendar-alt"></i> 5 Dec 1978</div>
+                                                <span class="age-chip" id="age-shusheel">--</span>
+                                            </div>
+                                            <span class="heart-icon"><i class="fas fa-heart"></i></span>
+                                            <div class="small-card late" data-birth="1980-04-18" data-died="2020-11-12">
+                                                <div class="small-name">Pushpa  <span class="gender-text female">F</span></div>
+                                                <div class="person-dob"><i class="fas fa-calendar-alt"></i> 18 Apr 1980</div>
+                                                <div class="person-dob"><i class="fas fa-skull"></i> 12 Nov 2020</div>
+                                                <span class="age-chip late" id="age-photo">--</span>
+                                            </div>
+                                        </div>
+
+                                        <!-- Shusheel's Children  -->
+                                        <ul>
+                                            <li>
+                                                <div class="small-card" data-birth="2002-05-15">
+                                                    <div class="small-name">Ragini Tiwari <span class="gender-text male">F</span></div>
+                                                    <div class="person-dob"><i class="fas fa-calendar-alt"></i> 15 May 2002</div>
+                                                    <span class="age-chip" id="age-son11">--</span>
+                                                </div>
+                                            </li>
+                                            <li>
+                                                <div class="small-card" data-birth="2005-08-22">
+                                                    <div class="small-name">Praveen  <span class="gender-text male">M</span></div>
+                                                    <div class="person-dob"><i class="fas fa-calendar-alt"></i> 22 Aug 2005</div>
+                                                    <span class="age-chip" id="age-son12">--</span>
+                                                </div>
+                                                <span class="heart-icon"><i class="fas fa-heart"></i></span>
+                                                <div class="small-card" data-birth="2002-05-15">
+                                                    <div class="small-name">Anu  <span class="gender-text male">F</span></div>
+                                                    <div class="person-dob"><i class="fas fa-calendar-alt"></i> 15 May 2002</div>
+                                                    <span class="age-chip" id="age-son12W">--</span>
+                                                </div>
+                                                <!-- Praveen children -->
+                                                <ul>
+                                                    <li>
+                                                        <div class="small-card" data-birth="2002-05-15">
+                                                            <div class="small-name">Pratham  <span class="gender-text male">M</span></div>
+                                                            <div class="person-dob"><i class="fas fa-calendar-alt"></i> 15 May 2002</div>
+                                                            <span class="age-chip" id="age-son11">--</span>
+                                                        </div>
+                                                    </li>
+                                                    <li>
+                                                        <div class="small-card" data-birth="2005-08-22">
+                                                            <div class="small-name">Parth  <span class="gender-text male">M</span></div>
+                                                            <div class="person-dob"><i class="fas fa-calendar-alt"></i> 22 Aug 2005</div>
+                                                            <span class="age-chip" id="age-son12">--</span>
+                                                        </div>
+                                                    </li>
+                                                </ul>
+                                            </li>
+                                            <li>
+                                                <div class="small-card" data-birth="2002-05-15">
+                                                    <div class="small-name">Pooja  <span class="gender-text male">F</span></div>
+                                                    <div class="person-dob"><i class="fas fa-calendar-alt"></i> 15 May 2002</div>
+                                                    <span class="age-chip" id="age-son13">--</span>
+                                                </div>
+                                            </li>
+                                            <li>
+                                                <div class="small-card" data-birth="2005-08-22">
+                                                    <div class="small-name">Nitesh  <span class="gender-text male">M</span></div>
+                                                    <div class="person-dob"><i class="fas fa-calendar-alt"></i> 22 Aug 2005</div>
+                                                    <span class="age-chip" id="age-son14">--</span>
+                                                </div>
+                                            </li>
+                                        </ul>
+                                    </li>
+
+                                    <!-- Rajkumar  -->
+                                    <li>
+                                        <div class="couple-container">
+                                            <div class="small-card" data-birth="1982-09-17">
+                                                <div class="small-name">Rajkumar  <span class="gender-text male">M</span></div>
+                                                <div class="person-dob"><i class="fas fa-calendar-alt"></i> 05 Jun 1977</div>
+                                                <span class="age-chip" id="age-rajkumar">--</span>
+                                            </div>
+                                            <span class="heart-icon"><i class="fas fa-heart"></i></span>
+                                            <div class="small-card" data-birth="1984-02-28">
+                                                <div class="small-name">Neelam  <span class="gender-text female">F</span></div>
+                                                <div class="person-dob"><i class="fas fa-calendar-alt"></i> 28 Feb 1984</div>
+                                                <span class="age-chip" id="age-neelam">--</span>
+                                            </div>
+                                        </div>
+
+                                        <!-- Rajkumar's Children - Ritika, Nitin, Nikhil -->
+                                        <ul>
+                                            <li>
+                                                <div class="small-card" data-birth="2002-07-25">
+                                                    <div class="small-name">Ritika  <span class="gender-text female">F</span></div>
+                                                    <div class="person-dob"><i class="fas fa-calendar-alt"></i> 25 Jul 2002</div>
+                                                    <span class="age-chip" id="age-ritika">--</span>
+                                                </div>
+                                            </li>
+                                            <li>
+                                                <!-- NITIN  with his own family -->
+                                                <div class="couple-container">
+                                                    <div class="small-card" data-birth="1998-10-19">
+                                                        <div class="small-name">Nitin  <span class="gender-text male">M</span></div>
+                                                        <div class="person-dob"><i class="fas fa-calendar-alt"></i> 19 Oct 1998</div>
+                                                        <span class="age-chip" id="age-nitin">--</span>
+                                                    </div>
+                                                   
+                                                </div>
+
+                                            </li>
+                                            <li>
+                                                <div class="small-card" data-birth="2000-03-12">
+                                                    <div class="small-name">Nikhil  <span class="gender-text male">M</span></div>
+                                                    <div class="person-dob"><i class="fas fa-calendar-alt"></i> 20 Jul 2004</div>
+                                                    <span class="age-chip" id="age-nikhil">--</span>
+                                                </div>
+                                            </li>
+                                        </ul>
+                                    </li>
+
+                                     <!-- Vijay  -->
+                                     <li>
+                                        <div class="couple-container">
+                                            <div class="small-card" data-birth="1982-09-17">
+                                                <div class="small-name">Vijay  <span class="gender-text male">M</span></div>
+                                                <div class="person-dob"><i class="fas fa-calendar-alt"></i> 17 Sep 1982</div>
+                                                <span class="age-chip" id="age-rajkumar">--</span>
+                                            </div>
+                                            <span class="heart-icon"><i class="fas fa-heart"></i></span>
+                                            <div class="small-card" data-birth="1984-02-28">
+                                                <div class="small-name">Asha  <span class="gender-text female">F</span></div>
+                                                <div class="person-dob"><i class="fas fa-calendar-alt"></i> 28 Feb 1984</div>
+                                                <span class="age-chip" id="age-neelam">--</span>
+                                            </div>
+                                        </div>
+
+                                        <!-- vijay children -->
+                                        <ul>
+                                            <li>
+                                                <div class="small-card" data-birth="2002-07-25">
+                                                    <div class="small-name">Nihal  <span class="gender-text female">F</span></div>
+                                                    <div class="person-dob"><i class="fas fa-calendar-alt"></i> 25 Jul 2002</div>
+                                                    <span class="age-chip" id="age-ritika">--</span>
+                                                </div>
+                                            </li>
+                                            <li>
+                                                <div class="couple-container">
+                                                    <div class="small-card" data-birth="1998-10-19">
+                                                        <div class="small-name">Kunal  <span class="gender-text male">M</span></div>
+                                                        <div class="person-dob"><i class="fas fa-calendar-alt"></i> 19 Oct 1998</div>
+                                                        <span class="age-chip" id="age-nitin">--</span>
+                                                    </div>
+                                                    
+                                                </div>
+                                            </li>
+                                        </ul>
+                                    </li>
+
+                                     <!-- Vinay  -->
+                                     <li>
+                                        <div class="couple-container">
+                                            <div class="small-card" data-birth="1982-09-17">
+                                                <div class="small-name">Vinay  <span class="gender-text male">M</span></div>
+                                                <div class="person-dob"><i class="fas fa-calendar-alt"></i> 17 Sep 1982</div>
+                                                <span class="age-chip" id="age-rajkumar">--</span>
+                                            </div>
+                                            <span class="heart-icon"><i class="fas fa-heart"></i></span>
+                                            <div class="small-card" data-birth="1984-02-28">
+                                                <div class="small-name">kanchan  <span class="gender-text female">F</span></div>
+                                                <div class="person-dob"><i class="fas fa-calendar-alt"></i> 28 Feb 1984</div>
+                                                <span class="age-chip" id="age-neelam">--</span>
+                                            </div>
+                                        </div>
+
+                                        <!-- vinay children -->
+                                        <ul>
+                                            <li>
+                                                <div class="small-card" data-birth="2002-07-25">
+                                                    <div class="small-name">Divyansh  <span class="gender-text female">M</span></div>
+                                                    <div class="person-dob"><i class="fas fa-calendar-alt"></i> 25 Jul 2002</div>
+                                                    <span class="age-chip" id="age-ritika">--</span>
+                                                </div>
+                                            </li>
+                                        </ul>
+                                    </li>
+                                     <!-- Amit  -->
+                                     <li>
+                                        <div class="couple-container">
+                                            <div class="small-card" data-birth="1982-09-17">
+                                                <div class="small-name">Amit  <span class="gender-text male">M</span></div>
+                                                <div class="person-dob"><i class="fas fa-calendar-alt"></i> 17 Sep 1982</div>
+                                                <span class="age-chip" id="age-rajkumar">--</span>
+                                            </div>
+                                            <span class="heart-icon"><i class="fas fa-heart"></i></span>
+                                            <div class="small-card" data-birth="1984-02-28">
+                                                <div class="small-name">Babita  <span class="gender-text female">F</span></div>
+                                                <div class="person-dob"><i class="fas fa-calendar-alt"></i> 28 Feb 1984</div>
+                                                <span class="age-chip" id="age-neelam">--</span>
+                                            </div>
+                                        </div>
+
+                                        <!-- vinay children -->
+                                        <ul>
+                                            <li>
+                                                <div class="small-card" data-birth="2002-07-25">
+                                                    <div class="small-name">Darshit(Ansh)  <span class="gender-text female">M</span></div>
+                                                    <div class="person-dob"><i class="fas fa-calendar-alt"></i> 25 Jul 2002</div>
+                                                    <span class="age-chip" id="age-ritika">--</span>
+                                                </div>
+                                            </li>
+                                        </ul>
+                                    </li>
+
+                                     <!-- Sunita  -->
+                                     <li>
+                                        <div class="couple-container">
+                                            <div class="small-card" data-birth="1982-09-17">
+                                                <div class="small-name">Sunita  <span class="gender-text male">F</span></div>
+                                                <div class="person-dob"><i class="fas fa-calendar-alt"></i> 17 Sep 1982</div>
+                                                <span class="age-chip" id="age-rajkumar">--</span>
+                                            </div>
+                                        </div>
+                                    </li>
+                                     <!-- Munita  -->
+                                     <li>
+                                        <div class="couple-container">
+                                            <div class="small-card" data-birth="1982-09-17">
+                                                <div class="small-name">Munita  <span class="gender-text male">F</span></div>
+                                                <div class="person-dob"><i class="fas fa-calendar-alt"></i> 17 Sep 1982</div>
+                                                <span class="age-chip" id="age-rajkumar">--</span>
+                                            </div>
+                                        </div>
+                                    </li>
+                                     <!-- Suchita  -->
+                                     <li>
+                                        <div class="couple-container">
+                                            <div class="small-card" data-birth="1982-09-17">
+                                                <div class="small-name">Suchita  <span class="gender-text male">F</span></div>
+                                                <div class="person-dob"><i class="fas fa-calendar-alt"></i> 17 Sep 1982</div>
+                                                <span class="age-chip" id="age-rajkumar">--</span>
+                                            </div>
+                                        </div>
+                                    </li>
+                                </ul>
+                            </li>
+
+                            <!-- Son 2: Ram Shiromani  - NOW HAS A PROPER UL WITH MESSAGE BOX -->
+                            <li>
+                                <div class="person-card late" data-birth="1958-07-22" data-died="2022-03-15">
+                                    <div class="person-name">Ram Shiromani  <span class="gender-text male">M</span></div>
+                                    <div class="person-dob"><i class="fas fa-calendar-alt"></i> 01 Feb 1940</div>
+                                    <div class="person-dob"><i class="fas fa-skull"></i> 19 Jan 2026</div>
+                                    <span class="age-chip late" id="age-shiromani">--</span>
+                                </div>
+                            </li>
+                        </ul>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <div class="family-summary">
+        <i class="fas fa-tree" style="color: #b8860b;"></i>
+        <span style="margin: 0 8px;">"A joint family rooted in love & tradition"</span>
+    </div>
+
+    <script>
+        function calculateAge(birthDateStr, deathDateStr = null) {
+            const birth = new Date(birthDateStr);
+            if (isNaN(birth.getTime())) return { years: '?', months: '?', valid: false };
+            const endDate = deathDateStr ? new Date(deathDateStr) : new Date();
+            if (deathDateStr && isNaN(endDate.getTime())) return { years: '?', months: '?', valid: false };
+            let years = endDate.getFullYear() - birth.getFullYear();
+            let months = endDate.getMonth() - birth.getMonth();
+            if (months < 0) { years--; months += 12; }
+            return { years, months, valid: true };
+        }
+
+        function updateAge(elementId, birthDate, deathDate = null) {
+            const elem = document.getElementById(elementId);
+            if (!elem) return;
+            const age = calculateAge(birthDate, deathDate);
+            if (age.valid) {
+                if (deathDate) {
+                    elem.textContent = `Lived ${age.years}y ${age.months}m`;
+                } else {
+                    elem.textContent = `${age.years}y ${age.months}m`;
+                }
+            } else {
+                elem.textContent = '--';
+            }
+        }
+
+        window.addEventListener('DOMContentLoaded', () => {
+            updateAge('age-jayraji', '1920-05-15', '2015-08-20');
+            updateAge('age-ramkripal', '1915-03-10', '1988-12-05');
+            updateAge('age-ramajor', '1945-01-01', null);
+            updateAge('age-ramkali', '1958-12-20', '2010-07-15');
+            updateAge('age-shiromani', '1940-02-01', '2026-02-19');
+            updateAge('age-shusheel', '1978-12-05', null);
+            updateAge('age-photo', '1980-04-18', '2020-11-12');
+            updateAge('age-rajkumar', '1977-06-05', null);
+            updateAge('age-neelam', '1984-02-28', null);
+            updateAge('age-son11', '2002-05-15', null);
+            updateAge('age-son12', '2005-08-22', null);
+            updateAge('age-son13', '2002-05-15', null);
+            updateAge('age-son14', '2005-08-22', null);
+            updateAge('age-ritika', '2002-07-25', null);
+            updateAge('age-nitin', '1998-10-19', null);
+            updateAge('age-nikhil', '2004-07-20', null);
+            updateAge('age-nitinwife', '1995-03-15', null);
+            updateAge('age-aarav', '2022-06-10', null);
+            updateAge('age-anaya', '2024-09-18', null);
+        });
+
+        setInterval(() => {
+            updateAge('age-ramajor', '1945-01-01', null);
+            updateAge('age-shusheel', '1978-12-05', null);
+            updateAge('age-rajkumar', '1977-06-05', null);
+            updateAge('age-neelam', '1984-02-28', null);
+            updateAge('age-nitin', '1998-10-19', null);
+            updateAge('age-nitinwife', '1995-03-15', null);
+            updateAge('age-son11', '2002-05-15', null);
+            updateAge('age-son22', '2005-08-22', null);
+            updateAge('age-son13', '2002-05-15', null);
+            updateAge('age-son14', '2005-08-22', null);
+            updateAge('age-ritika', '2002-07-25', null);
+            updateAge('age-nikhil', '2004-07-20', null);
+            updateAge('age-aarav', '2022-06-10', null);
+            updateAge('age-anaya', '2024-09-18', null);
+        }, 86400000);
+    </script>
+</body>
+</html>
